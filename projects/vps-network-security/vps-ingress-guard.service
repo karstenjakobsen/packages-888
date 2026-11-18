@@ -8,6 +8,7 @@ Conflicts=shutdown.target
 
 [Service]
 Type=oneshot
+WorkingDirectory=/home/swarm/packages/0f978c3c-49f1-44df-aa71-2f29b4547db4
 ExecStart=/usr/local/sbin/vps-apply-ingress
 ExecReload=/usr/local/sbin/vps-apply-ingress
 RemainAfterExit=yes
