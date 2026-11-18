@@ -22,6 +22,12 @@ Bind a dedicated scoped read-only NOMAD_TOKEN through the owner's local Connecti
 
 The registered connection remains disabled until the runtime, private API and owner credential binding exist. Runtime installation, credentials, enabled state and worker placement remain outside Git.
 
+## Registered connection refresh still required
+
+The source manifest contains the new versioned path and -read-only flag. The existing disabled local connection still has its earlier /opt/nomad-mcp/bin/mcp-nomad -transport=stdio arguments. An attempted connector_register_project refresh on 2026-11-18 was rejected by the operator API with "This connection is outside the task grant". No alternate control channel was used.
+
+Before enabling, a task granted access to connection 08e82545-bf81-46e7-93b7-5ec8eb81c220 must call connector_register_project for this package, then verify connector_list reports the exact mcp command and args from the committed manifest and remains disabled until credentials/runtime are ready. Do not infer that committing source updated the effective launch arguments.
+
 ## Later installation and activation
 
 1. Use the nomad-single-node skill at ../../skills/nomad-single-node/SKILL.md to deploy and verify the private Nomad agent through an authorized operator API task.
