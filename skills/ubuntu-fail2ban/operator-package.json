@@ -1,0 +1,8 @@
+{
+  "schemaVersion": 1,
+  "id": "9603ac70-f3c4-48fb-97b7-3cc192fc8fa6",
+  "kind": "skill",
+  "name": "ubuntu-fail2ban",
+  "version": "0.1.0",
+  "description": "Plan and verify narrowly scoped Fail2ban SSH protection on Ubuntu with explicit live-change authorization and a recovery path."
+}

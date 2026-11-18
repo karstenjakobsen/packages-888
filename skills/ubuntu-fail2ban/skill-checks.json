@@ -1,0 +1,140 @@
+{
+  "checks": [
+    {
+      "name": "journal-custom-ports-dual-stack",
+      "command": "python3",
+      "args": [
+        "{skill}/scripts/render_sshd.py",
+        "{fixture}/input.json",
+        "{fixture}/sshd.local"
+      ],
+      "fixtures": {
+        "input.json": "{\"ports\":[2222,2200,2222],\"allowlist\":[\"2001:0db8:5::/64\",\"192.0.2.7\",\"198.51.100.0/24\"],\"backend\":\"systemd\",\"banaction\":\"nftables-multiport\",\"maxretry\":5,\"findtime\":600,\"bantime\":900}"
+      },
+      "expectedFiles": {
+        "sshd.local": "[sshd]\nenabled = true\nfilter = sshd\nbackend = systemd\nprotocol = tcp\nport = 2200,2222\nignoreip = 192.0.2.7 198.51.100.0/24 2001:db8:5::/64\nbanaction = nftables-multiport\nmaxretry = 5\nfindtime = 600\nbantime = 900\n"
+      },
+      "timeoutMs": 5000
+    },
+    {
+      "name": "file-log",
+      "command": "python3",
+      "args": [
+        "{skill}/scripts/render_sshd.py",
+        "{fixture}/input.json",
+        "{fixture}/sshd.local"
+      ],
+      "fixtures": {
+        "input.json": "{\"ports\":[2222,2200,2222],\"allowlist\":[\"2001:0db8:5::/64\",\"192.0.2.7\",\"198.51.100.0/24\"],\"backend\":\"polling\",\"banaction\":\"iptables-multiport\",\"maxretry\":5,\"findtime\":600,\"bantime\":900,\"logpath\":\"/fixture/sshd.log\"}"
+      },
+      "expectedFiles": {
+        "sshd.local": "[sshd]\nenabled = true\nfilter = sshd\nbackend = polling\nprotocol = tcp\nport = 2200,2222\nignoreip = 192.0.2.7 198.51.100.0/24 2001:db8:5::/64\nbanaction = iptables-multiport\nmaxretry = 5\nfindtime = 600\nbantime = 900\nlogpath = /fixture/sshd.log\n"
+      },
+      "timeoutMs": 5000
+    },
+    {
+      "name": "stable-render",
+      "command": "python3",
+      "args": [
+        "-c",
+        "\nfrom pathlib import Path\nimport json\nimport subprocess\nimport sys\n\nhelper, source, output_path = sys.argv[1:]\noutput = Path(output_path)\ncommand = [sys.executable, helper, source, output_path]\nsubprocess.run(command, check=True)\nfirst = output.read_bytes()\nsubprocess.run(command, check=True)\nassert output.read_bytes() == first\npath = Path(source)\ndata = json.loads(path.read_text())\ndata[\"ports\"].reverse()\ndata[\"allowlist\"].reverse()\npath.write_text(json.dumps(data, sort_keys=True))\nsubprocess.run(command, check=True)\nassert output.read_bytes() == first\nprint(\"stable across rerender and reordered input\")\n",
+        "{skill}/scripts/render_sshd.py",
+        "{fixture}/input.json",
+        "{fixture}/sshd.local"
+      ],
+      "fixtures": {
+        "input.json": "{\"ports\":[2222,2200,2222],\"allowlist\":[\"2001:0db8:5::/64\",\"192.0.2.7\",\"198.51.100.0/24\"],\"backend\":\"systemd\",\"banaction\":\"nftables-multiport\",\"maxretry\":5,\"findtime\":600,\"bantime\":900}"
+      },
+      "expectedStdout": "stable across rerender and reordered input",
+      "expectedFiles": {
+        "sshd.local": "[sshd]\nenabled = true\nfilter = sshd\nbackend = systemd\nprotocol = tcp\nport = 2200,2222\nignoreip = 192.0.2.7 198.51.100.0/24 2001:db8:5::/64\nbanaction = nftables-multiport\nmaxretry = 5\nfindtime = 600\nbantime = 900\n"
+      },
+      "timeoutMs": 5000
+    },
+    {
+      "name": "reject-boolean-port",
+      "command": "python3",
+      "args": [
+        "-c",
+        "\nfrom pathlib import Path\nimport subprocess\nimport sys\n\nhelper, input_path, output_path, message = sys.argv[1:]\noutput = Path(output_path)\noutput.write_bytes(b\"preserve existing output\\n\")\nresult = subprocess.run([sys.executable, helper, input_path, output_path], capture_output=True, text=True)\nassert result.returncode == 2, result\nassert result.stdout == \"\", result\nassert result.stderr == f\"render_sshd: {message}\\n\", result\nassert output.read_bytes() == b\"preserve existing output\\n\"\nprint(\"rejected; output preserved\")\n",
+        "{skill}/scripts/render_sshd.py",
+        "{fixture}/input.json",
+        "{fixture}/sshd.local",
+        "port must be an integer from 1 to 65535"
+      ],
+      "fixtures": {
+        "input.json": "{\"ports\":[true],\"allowlist\":[\"2001:0db8:5::/64\",\"192.0.2.7\",\"198.51.100.0/24\"],\"backend\":\"systemd\",\"banaction\":\"nftables-multiport\",\"maxretry\":5,\"findtime\":600,\"bantime\":900}"
+      },
+      "expectedStdout": "rejected; output preserved",
+      "timeoutMs": 5000
+    },
+    {
+      "name": "reject-journal-logpath",
+      "command": "python3",
+      "args": [
+        "-c",
+        "\nfrom pathlib import Path\nimport subprocess\nimport sys\n\nhelper, input_path, output_path, message = sys.argv[1:]\noutput = Path(output_path)\noutput.write_bytes(b\"preserve existing output\\n\")\nresult = subprocess.run([sys.executable, helper, input_path, output_path], capture_output=True, text=True)\nassert result.returncode == 2, result\nassert result.stdout == \"\", result\nassert result.stderr == f\"render_sshd: {message}\\n\", result\nassert output.read_bytes() == b\"preserve existing output\\n\"\nprint(\"rejected; output preserved\")\n",
+        "{skill}/scripts/render_sshd.py",
+        "{fixture}/input.json",
+        "{fixture}/sshd.local",
+        "missing or unexpected keys for selected backend"
+      ],
+      "fixtures": {
+        "input.json": "{\"ports\":[2222,2200,2222],\"allowlist\":[\"2001:0db8:5::/64\",\"192.0.2.7\",\"198.51.100.0/24\"],\"backend\":\"systemd\",\"banaction\":\"nftables-multiport\",\"maxretry\":5,\"findtime\":600,\"bantime\":900,\"logpath\":\"/fixture/sshd.log\"}"
+      },
+      "expectedStdout": "rejected; output preserved",
+      "timeoutMs": 5000
+    },
+    {
+      "name": "reject-config-injection",
+      "command": "python3",
+      "args": [
+        "-c",
+        "\nfrom pathlib import Path\nimport subprocess\nimport sys\n\nhelper, input_path, output_path, message = sys.argv[1:]\noutput = Path(output_path)\noutput.write_bytes(b\"preserve existing output\\n\")\nresult = subprocess.run([sys.executable, helper, input_path, output_path], capture_output=True, text=True)\nassert result.returncode == 2, result\nassert result.stdout == \"\", result\nassert result.stderr == f\"render_sshd: {message}\\n\", result\nassert output.read_bytes() == b\"preserve existing output\\n\"\nprint(\"rejected; output preserved\")\n",
+        "{skill}/scripts/render_sshd.py",
+        "{fixture}/input.json",
+        "{fixture}/sshd.local",
+        "banaction must be a simple installed action name"
+      ],
+      "fixtures": {
+        "input.json": "{\"ports\":[2222,2200,2222],\"allowlist\":[\"2001:0db8:5::/64\",\"192.0.2.7\",\"198.51.100.0/24\"],\"backend\":\"systemd\",\"banaction\":\"nftables\\n[other]\",\"maxretry\":5,\"findtime\":600,\"bantime\":900}"
+      },
+      "expectedStdout": "rejected; output preserved",
+      "timeoutMs": 5000
+    },
+    {
+      "name": "reject-hostname-allowlist",
+      "command": "python3",
+      "args": [
+        "-c",
+        "\nfrom pathlib import Path\nimport subprocess\nimport sys\n\nhelper, input_path, output_path, message = sys.argv[1:]\noutput = Path(output_path)\noutput.write_bytes(b\"preserve existing output\\n\")\nresult = subprocess.run([sys.executable, helper, input_path, output_path], capture_output=True, text=True)\nassert result.returncode == 2, result\nassert result.stdout == \"\", result\nassert result.stderr == f\"render_sshd: {message}\\n\", result\nassert output.read_bytes() == b\"preserve existing output\\n\"\nprint(\"rejected; output preserved\")\n",
+        "{skill}/scripts/render_sshd.py",
+        "{fixture}/input.json",
+        "{fixture}/sshd.local",
+        "allowlist entries must be literal IP addresses or CIDRs"
+      ],
+      "fixtures": {
+        "input.json": "{\"ports\":[2222,2200,2222],\"allowlist\":[\"admin.example\"],\"backend\":\"systemd\",\"banaction\":\"nftables-multiport\",\"maxretry\":5,\"findtime\":600,\"bantime\":900}"
+      },
+      "expectedStdout": "rejected; output preserved",
+      "timeoutMs": 5000
+    },
+    {
+      "name": "reject-file-glob",
+      "command": "python3",
+      "args": [
+        "-c",
+        "\nfrom pathlib import Path\nimport subprocess\nimport sys\n\nhelper, input_path, output_path, message = sys.argv[1:]\noutput = Path(output_path)\noutput.write_bytes(b\"preserve existing output\\n\")\nresult = subprocess.run([sys.executable, helper, input_path, output_path], capture_output=True, text=True)\nassert result.returncode == 2, result\nassert result.stdout == \"\", result\nassert result.stderr == f\"render_sshd: {message}\\n\", result\nassert output.read_bytes() == b\"preserve existing output\\n\"\nprint(\"rejected; output preserved\")\n",
+        "{skill}/scripts/render_sshd.py",
+        "{fixture}/input.json",
+        "{fixture}/sshd.local",
+        "logpath must be a literal absolute file path"
+      ],
+      "fixtures": {
+        "input.json": "{\"ports\":[2222,2200,2222],\"allowlist\":[\"2001:0db8:5::/64\",\"192.0.2.7\",\"198.51.100.0/24\"],\"backend\":\"polling\",\"banaction\":\"iptables-multiport\",\"maxretry\":5,\"findtime\":600,\"bantime\":900,\"logpath\":\"/fixture/*.log\"}"
+      },
+      "expectedStdout": "rejected; output preserved",
+      "timeoutMs": 5000
+    }
+  ]
+}
