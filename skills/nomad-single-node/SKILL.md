@@ -33,6 +33,6 @@ Inspect every loaded .hcl/.json file and service override: Nomad merges configur
 
 Require observed service health, one elected server, one ready Docker-capable client, ACL enforcement, loopback-only listeners and a successful Docker smoke allocation. Check privacy from an external vantage when available; report missing external verification. Do not claim installation succeeded from an offline fixture.
 
-Read [references/mcp.md](references/mcp.md) when preparing or activating the connector. Leave it disabled until runtime, credentials and private reachability are configured. Test MCP discovery separately from an authenticated read. Attach enabled connections to the Nomad project for subsequent tasks.
+Read [references/mcp.md](references/mcp.md) when preparing or activating the connector. The owner selected community kocierik/mcp-nomad; the prepared connection pins v0.4.0 and starts with -read-only. Leave it disabled until runtime, credentials and private reachability are configured. Test MCP discovery separately from an authenticated read. Attach enabled connections to the Nomad project for subsequent tasks.
 
 Report source commit and publication state separately from deployment and observed health. Record exact versions, checkedAt, deferred backups, connector state and any missing checks. Do not record a successful live skill outcome until the procedure has actually been used.
