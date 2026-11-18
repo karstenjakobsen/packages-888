@@ -1,0 +1,28 @@
+{
+  "checks": [
+    {
+      "name": "persistent single-node private control plane template",
+      "command": "python3",
+      "args": [
+        "-c",
+        "import json,sys,ipaddress\nc=json.load(open(sys.argv[1]))\nassert c[\"server\"][\"enabled\"] and c[\"server\"][\"bootstrap_expect\"]==1 and c[\"client\"][\"enabled\"]\nassert c[\"data_dir\"].startswith(\"/\") and c[\"acl\"][\"enabled\"] is True\nassert ipaddress.ip_address(c[\"bind_addr\"]).is_loopback\nfor kind,port in [(\"http\",4646),(\"rpc\",4647),(\"serf\",4648)]:\n assert ipaddress.ip_address(c[\"addresses\"][kind]).is_loopback\n assert c[\"advertise\"][kind]==\"127.0.0.1:\"+str(port)\nassert c[\"client\"][\"servers\"]==[\"127.0.0.1:4647\"]\np={k:v for block in c[\"plugin\"] for k,v in block.items()}\nassert p[\"docker\"][\"config\"][\"endpoint\"].startswith(\"unix://\")\nassert p[\"docker\"][\"config\"][\"allow_privileged\"] is False\nassert p[\"docker\"][\"config\"][\"volumes\"][\"enabled\"] is False\nassert p[\"raw_exec\"][\"config\"][\"enabled\"] is False\nprint(\"PASS: persistent singleton, ACLs, loopback control plane, local Docker\")",
+        "{skill}/assets/nomad.json"
+      ],
+      "fixtures": {},
+      "expectedStdout": "PASS: persistent singleton, ACLs, loopback control plane, local Docker\n",
+      "timeoutMs": 10000
+    },
+    {
+      "name": "persistent client service lifecycle template",
+      "command": "python3",
+      "args": [
+        "-c",
+        "import configparser,sys\nc=configparser.ConfigParser(strict=False); c.read(sys.argv[1])\ns=c[\"Service\"]; u=c[\"Unit\"]\nassert s[\"User\"]==\"root\" and s[\"KillMode\"]==\"process\" and s[\"KillSignal\"]==\"SIGINT\"\nassert s[\"Restart\"]==\"on-failure\" and s[\"ExecStart\"].endswith(\"agent -config=/etc/nomad.d\")\nassert \"-dev\" not in s[\"ExecStart\"] and \"docker.service\" in u[\"After\"] and \"docker.service\" in u[\"Requires\"]\nassert c[\"Install\"][\"WantedBy\"]==\"multi-user.target\"\nprint(\"PASS: persistent Docker client service without dev mode\")",
+        "{skill}/assets/nomad.service"
+      ],
+      "fixtures": {},
+      "expectedStdout": "PASS: persistent Docker client service without dev mode\n",
+      "timeoutMs": 10000
+    }
+  ]
+}
