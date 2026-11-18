@@ -10,7 +10,7 @@
       "fixtures": {
         "input.json": "{\"intended_origin\":\"HTTPS://API.Example.Test:443\",\"request_url\":\"https://api.example.test/items\",\"redirects\":[\"https://API.example.test:443/next?cursor=2\"]}"
       },
-      "expectedStdout": "reviewable same_https_origin",
+      "expectedStdout": "reviewable same_https_origin\n",
       "timeoutMs": 3000
     },
     {
@@ -23,7 +23,7 @@
       "fixtures": {
         "input.json": "{\"intended_origin\":\"HTTPS://API.Example.Test:443\",\"request_url\":\"https://api.example.test/items\",\"redirects\":[\"https://api.example.test/first\",\"https://other.example.test/second\"]}"
       },
-      "expectedStdout": "blocked different_origin",
+      "expectedStdout": "blocked different_origin\n",
       "timeoutMs": 3000
     },
     {
@@ -36,7 +36,7 @@
       "fixtures": {
         "input.json": "{\"intended_origin\":\"HTTPS://API.Example.Test:443\",\"request_url\":\"https://api.example.test/items\",\"redirects\":[\"http://api.example.test:443/next\"]}"
       },
-      "expectedStdout": "blocked https_required",
+      "expectedStdout": "blocked https_required\n",
       "timeoutMs": 3000
     },
     {
@@ -49,7 +49,7 @@
       "fixtures": {
         "input.json": "{\"intended_origin\":\"HTTPS://API.Example.Test:443\",\"request_url\":\"https://api.example.test:8443/items\",\"redirects\":[]}"
       },
-      "expectedStdout": "blocked different_origin",
+      "expectedStdout": "blocked different_origin\n",
       "timeoutMs": 3000
     },
     {
@@ -62,7 +62,7 @@
       "fixtures": {
         "input.json": "{\"intended_origin\":\"HTTPS://API.Example.Test:443\",\"request_url\":\"https://api.example.test.other.test/\",\"redirects\":[]}"
       },
-      "expectedStdout": "blocked different_origin",
+      "expectedStdout": "blocked different_origin\n",
       "timeoutMs": 3000
     },
     {
@@ -75,7 +75,7 @@
       "fixtures": {
         "input.json": "{\"intended_origin\":\"HTTPS://API.Example.Test:443\",\"request_url\":\"https://placeholder@api.example.test/\",\"redirects\":[]}"
       },
-      "expectedStdout": "blocked invalid_input",
+      "expectedStdout": "blocked invalid_input\n",
       "timeoutMs": 3000
     },
     {
@@ -88,7 +88,7 @@
       "fixtures": {
         "input.json": "{\"intended_origin\":\"HTTPS://API.Example.Test:443\",\"request_url\":\"https://api.example.test\\\\@other.example.test/\",\"redirects\":[]}"
       },
-      "expectedStdout": "blocked invalid_input",
+      "expectedStdout": "blocked invalid_input\n",
       "timeoutMs": 3000
     },
     {
@@ -101,7 +101,7 @@
       "fixtures": {
         "input.json": "{\"intended_origin\":\"HTTPS://API.Example.Test:443\",\"request_url\":\"https://api.example.test:65536/\",\"redirects\":[]}"
       },
-      "expectedStdout": "blocked invalid_input",
+      "expectedStdout": "blocked invalid_input\n",
       "timeoutMs": 3000
     },
     {
@@ -114,7 +114,7 @@
       "fixtures": {
         "input.json": "{\"intended_origin\":\"https://api.example.test\",\"request_url\":\"https://api.example.test\",\"redirects\":[],\"redirects\":[]}"
       },
-      "expectedStdout": "blocked invalid_input",
+      "expectedStdout": "blocked invalid_input\n",
       "timeoutMs": 3000
     },
     {
@@ -127,7 +127,7 @@
       "fixtures": {
         "input.json": "{\"intended_origin\":\"https://[2001:db8::1]\",\"request_url\":\"https://[2001:0db8:0:0:0:0:0:1]:443/\",\"redirects\":[]}"
       },
-      "expectedStdout": "reviewable same_https_origin",
+      "expectedStdout": "reviewable same_https_origin\n",
       "timeoutMs": 3000
     }
   ]
