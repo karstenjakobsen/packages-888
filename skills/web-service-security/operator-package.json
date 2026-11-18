@@ -1,0 +1,8 @@
+{
+  "schemaVersion": 1,
+  "id": "6f04e3e1-c099-4743-aeeb-af3dac1b87e3",
+  "kind": "skill",
+  "name": "web-service-security",
+  "version": "0.1.0",
+  "description": "Review security of operator-generated web services, APIs and integrations when explicitly requested."
+}
