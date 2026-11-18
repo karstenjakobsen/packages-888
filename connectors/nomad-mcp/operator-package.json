@@ -3,15 +3,16 @@
   "id": "1aff0590-ba1c-4d2a-8e91-774a831611ed",
   "kind": "connector",
   "name": "Nomad local MCP",
-  "version": "0.1.0",
-  "description": "Staged same-host Nomad MCP over stdio with loopback API. Disabled: upstream implementation/version awaits owner clarification, runtime is not installed and ACL credential must be bound later in Connections. No public API or MCP listener.",
+  "version": "0.1.1",
+  "description": "Community kocierik/mcp-nomad v0.4.0, pinned to release commit and checksums. Same-host stdio, loopback Nomad API, read-only tools and dedicated ACL token. Disabled until later runtime installation and owner credential binding.",
   "mcp": {
     "transport": "stdio",
     "command": "/usr/bin/env",
     "args": [
       "NOMAD_ADDR=http://127.0.0.1:4646",
-      "/opt/nomad-mcp/bin/mcp-nomad",
-      "-transport=stdio"
+      "/opt/nomad-mcp/0.4.0/mcp-nomad",
+      "-transport=stdio",
+      "-read-only"
     ]
   }
 }

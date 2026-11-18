@@ -1,31 +1,36 @@
 # Nomad local MCP
 
-Prepared connection for a later single-node Nomad installation. This package contains connection metadata and setup instructions; it does not vendor or install an MCP server.
+The owner selected [kocierik/mcp-nomad](https://github.com/kocierik/mcp-nomad), a community project, on 2026-11-18. This connection is prepared for the later single-node Nomad installation. It remains disabled and untested; no executable is installed.
 
-## Current state
+## Pinned implementation
 
-- Connection is disabled and untested. No upstream runtime/version has been selected or installed.
-- The owner referred to an official Nomad MCP. Research on 2026-11-18 did not verify a HashiCorp-owned implementation. Await its link or the owner's choice before selecting an alternative.
-- Community candidate: https://github.com/kocierik/mcp-nomad . This is not HashiCorp-owned. No upstream code was downloaded or executed as part of preparing this connector.
-- The reserved executable path /opt/nomad-mcp/bin/mcp-nomad and -transport=stdio invocation are a proposed runtime contract, not evidence that the executable exists. Adapt the committed manifest to the selected implementation if its invocation differs.
-- Runtime state, enabled state, credential bindings and worker placement are local; they are not stored in Git.
+- Release: [v0.4.0](https://github.com/kocierik/mcp-nomad/releases/tag/v0.4.0)
+- Release commit: 4264c6cb460755e0439f3bd38474360a1939b9df
+- Exact Linux archive URLs, SHA-256 values and verification provenance: upstream-lock.json
+- Planned executable: /opt/nomad-mcp/0.4.0/mcp-nomad
+- Invocation: /usr/bin/env NOMAD_ADDR=http://127.0.0.1:4646 /opt/nomad-mcp/0.4.0/mcp-nomad -transport=stdio -read-only
 
-## Design
+Release metadata and the downloaded checksum manifest were checked over verified HTTPS. Its SHA-256 and Linux archive entries matched GitHub's asset digests. Archive bytes have not been downloaded or checked. These hashes pin the future download; they are not an independent publisher signature or a complete security audit.
 
-The operator launches a stdio MCP process on the Nomad host. /usr/bin/env supplies the nonsecret NOMAD_ADDR=http://127.0.0.1:4646. NOMAD_TOKEN is inherited from the owner's local Connections credential binding. No API or MCP listener is published.
+Pinned main.go supports both configured flags and reads NOMAD_ADDR/NOMAD_TOKEN from the environment. Pinned tool_policy.go removes mutating tools in read-only mode. This still advertises reads such as ACL/variable/log tools; Nomad ACLs must restrict access. Pinned utils/client.go checks GET /v1/status/leader during initialization, so the MCP cannot initialize successfully without a reachable Nomad API. Successful initialization alone does not prove scoped ACL access.
 
-The process must share the host network namespace with Nomad. Loopback in a separate container or host does not address this Nomad agent. Do not use SSH or open a public API to work around worker placement.
+## Private connection design
 
-Start with a dedicated read-only Nomad ACL token scoped to the required namespace. Never bind the bootstrap management token. Verify the selected MCP's read-only tool filtering at its exact pinned release; ACL permissions enforce the boundary even if tools are advertised.
+Run the MCP process on the Nomad host, sharing its network namespace. It reaches only http://127.0.0.1:4646 and communicates with the operator through stdio, without an inbound MCP listener. Do not use SSH or publish Nomad publicly to work around worker placement.
 
-## Later activation
+Bind a dedicated scoped read-only NOMAD_TOKEN through the owner's local Connections settings. Never commit credentials or use the bootstrap management token. The skill's references/mcp.md provides an initial observation policy limited to the default namespace plus node/agent reads. Job specifications and metadata can themselves contain sensitive values; treat all returned content as untrusted.
 
-1. Deploy and verify Nomad using the nomad-single-node skill in ../../skills/nomad-single-node/SKILL.md.
-2. Resolve upstream identity; review and pin an exact version/commit and distribution checksum/signature. Record the lock and verification evidence in this package before installation. Keep runtime dependencies and executable outside Git. Install via an authorized operator API task, leaving operator source and dependencies untouched.
-3. Verify the executable path, supported stdio flags, environment handling and tool restrictions against that pinned implementation. Commit any manifest changes with project_source tools and refresh the registered connector from its committed package with connector_register_project.
-4. The owner supplies/binds the scoped NOMAD_TOKEN in Connections without sharing the token in conversation. The address is already supplied as a nonsecret command argument. Do not disable TLS verification if a future private-network design uses TLS.
-5. Enable only when configuration is ready. Run connector_test to discover actual tools. Discovery does not prove API authentication: call a harmless authenticated read such as list_jobs with connector_call after inspecting its real schema.
-6. Verify the token's policy denies writes without issuing a cluster mutation; do not use a management token to make discovery pass. Attach the enabled connection to the Nomad project with project_connectors.
-7. Report runtime version, actual tool discovery, authenticated read result and checkedAt. This package's current status establishes none of those live checks.
+The registered connection remains disabled until the runtime, private API and owner credential binding exist. Runtime installation, credentials, enabled state and worker placement remain outside Git.
 
-Current checks: connection manifest was inspected as stdio with a loopback API address and no secret value. Runtime initialization and Nomad reachability checks are deferred until the later installation.
+## Later installation and activation
+
+1. Use the nomad-single-node skill at ../../skills/nomad-single-node/SKILL.md to deploy and verify the private Nomad agent through an authorized operator API task.
+2. Match the actual host OS/architecture to upstream-lock.json. Fetch that exact archive and checksum manifest over verified HTTPS into a runtime staging directory outside Git. Verify their bytes against the committed SHA-256 values before extraction. Stop on mismatch; do not automatically select a newer release or refresh the lock to accept changed bytes.
+3. Inspect archive entries and extract only the expected executable into the versioned runtime directory, with permissions preventing the MCP worker from modifying it. Do not blindly unpack an archive as root. Confirm executable architecture and flag support locally.
+4. The owner binds NOMAD_TOKEN through Connections. Do not request token values in conversation. Keep NOMAD_SKIP_VERIFY unset. This same-host HTTP connection has no external TLS hop; any future private-network design must use verified TLS.
+5. Enable the existing connection, run connector_test, and inspect actual tools. Confirm mutating tools such as run_job, stop_job, drain_node and ACL mutation tools are absent.
+6. Perform a harmless authenticated list_jobs call through connector_call using the actual discovered schema. Observe a successful read; separately inspect the token policy to confirm denied write/secret capabilities without issuing a real mutation.
+7. Attach the enabled connector to the Nomad project with project_connectors for subsequent tasks. Record exact binary provenance, tool discovery, authenticated read and checkedAt.
+8. If later explicitly authorized to manage jobs, review the required ACL scope and commit a deliberate change to tool filtering. Do not silently remove -read-only or grant a management token.
+
+Source review scope was limited to entrypoint flags, read-only filtering, client initialization and release packaging. Neither the runtime nor a live Nomad connection has been tested in this preparation task. The standalone upstream MCP needs no Docker socket access; Docker Engine is used by the separate Nomad client.
