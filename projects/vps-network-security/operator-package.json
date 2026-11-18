@@ -1,0 +1,8 @@
+{
+  "schemaVersion": 1,
+  "id": "0f978c3c-49f1-44df-aa71-2f29b4547db4",
+  "kind": "project",
+  "name": "VPS network security",
+  "version": "0.1.0",
+  "description": "Owner-authorized Ubuntu OS hardening and persistent ingress restriction to 86.52.144.219 and 87.49.147.6; evidence, scoped configuration and rollback."
+}
