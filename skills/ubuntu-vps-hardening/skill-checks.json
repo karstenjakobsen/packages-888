@@ -1,0 +1,134 @@
+{
+  "checks": [
+    {
+      "name": "no changes",
+      "command": "python3",
+      "args": [
+        "{skill}/scripts/check_change_plan.py",
+        "{fixture}/input.json"
+      ],
+      "fixtures": {
+        "input.json": "{\"actions\":[],\"evidence\":{},\"affected_families\":[]}"
+      },
+      "expectedStdout": "reviewable no_changes_requested",
+      "timeoutMs": 3000
+    },
+    {
+      "name": "root login has independent recovery",
+      "command": "python3",
+      "args": [
+        "{skill}/scripts/check_change_plan.py",
+        "{fixture}/input.json"
+      ],
+      "fixtures": {
+        "input.json": "{\"actions\":[\"disable_root_ssh\"],\"evidence\":{\"alternate_admin_fresh_independent_key_login\":true,\"alternate_admin_sudo_verified\":true,\"provider_console_recovery_verified\":true,\"management_session_retained\":true},\"affected_families\":[]}"
+      },
+      "expectedStdout": "reviewable prerequisites_reported",
+      "timeoutMs": 3000
+    },
+    {
+      "name": "root login requires verified sudo and console",
+      "command": "python3",
+      "args": [
+        "{skill}/scripts/check_change_plan.py",
+        "{fixture}/input.json"
+      ],
+      "fixtures": {
+        "input.json": "{\"actions\":[\"disable_root_ssh\"],\"evidence\":{\"alternate_admin_fresh_independent_key_login\":true,\"alternate_admin_sudo_verified\":false,\"provider_console_recovery_verified\":null,\"management_session_retained\":true},\"affected_families\":[]}"
+      },
+      "expectedStdout": "blocked alternate_admin_sudo_verified,provider_console_recovery_verified",
+      "timeoutMs": 3000
+    },
+    {
+      "name": "password-only change with tested keys",
+      "command": "python3",
+      "args": [
+        "{skill}/scripts/check_change_plan.py",
+        "{fixture}/input.json"
+      ],
+      "fixtures": {
+        "input.json": "{\"actions\":[\"disable_password_ssh\"],\"evidence\":{\"affected_accounts_key_logins_verified\":true},\"affected_families\":[]}"
+      },
+      "expectedStdout": "reviewable prerequisites_reported",
+      "timeoutMs": 3000
+    },
+    {
+      "name": "alternate administrator alone does not prove all keys",
+      "command": "python3",
+      "args": [
+        "{skill}/scripts/check_change_plan.py",
+        "{fixture}/input.json"
+      ],
+      "fixtures": {
+        "input.json": "{\"actions\":[\"disable_password_ssh\"],\"evidence\":{\"alternate_admin_fresh_independent_key_login\":true,\"alternate_admin_sudo_verified\":true,\"provider_console_recovery_verified\":true,\"management_session_retained\":true},\"affected_families\":[]}"
+      },
+      "expectedStdout": "blocked affected_accounts_key_logins_verified",
+      "timeoutMs": 3000
+    },
+    {
+      "name": "dual stack replacement",
+      "command": "python3",
+      "args": [
+        "{skill}/scripts/check_change_plan.py",
+        "{fixture}/input.json"
+      ],
+      "fixtures": {
+        "input.json": "{\"actions\":[\"restrict_ssh_path\"],\"evidence\":{\"effective_listener_verified\":true,\"recoverable_rollback\":true,\"ipv4_replacement_tested\":true,\"ipv6_replacement_tested\":true},\"affected_families\":[\"ipv4\",\"ipv6\"]}"
+      },
+      "expectedStdout": "reviewable prerequisites_reported",
+      "timeoutMs": 3000
+    },
+    {
+      "name": "IPv4 success does not prove IPv6",
+      "command": "python3",
+      "args": [
+        "{skill}/scripts/check_change_plan.py",
+        "{fixture}/input.json"
+      ],
+      "fixtures": {
+        "input.json": "{\"actions\":[\"restrict_ssh_path\"],\"evidence\":{\"effective_listener_verified\":true,\"recoverable_rollback\":true,\"ipv4_replacement_tested\":true,\"ipv6_replacement_tested\":null},\"affected_families\":[\"ipv4\",\"ipv6\"]}"
+      },
+      "expectedStdout": "blocked ipv6_replacement_tested",
+      "timeoutMs": 3000
+    },
+    {
+      "name": "core change routes to owner",
+      "command": "python3",
+      "args": [
+        "{skill}/scripts/check_change_plan.py",
+        "{fixture}/input.json"
+      ],
+      "fixtures": {
+        "input.json": "{\"actions\":[\"operator_core_change\"],\"evidence\":{},\"affected_families\":[]}"
+      },
+      "expectedStdout": "external-maintenance operator_core_change",
+      "timeoutMs": 3000
+    },
+    {
+      "name": "duplicate evidence key",
+      "command": "python3",
+      "args": [
+        "{skill}/scripts/check_change_plan.py",
+        "{fixture}/input.json"
+      ],
+      "fixtures": {
+        "input.json": "{\"actions\":[],\"affected_families\":[],\"evidence\":{\"recoverable_rollback\":false,\"recoverable_rollback\":true}}"
+      },
+      "expectedStdout": "blocked invalid_input",
+      "timeoutMs": 3000
+    },
+    {
+      "name": "wrong evidence type",
+      "command": "python3",
+      "args": [
+        "{skill}/scripts/check_change_plan.py",
+        "{fixture}/input.json"
+      ],
+      "fixtures": {
+        "input.json": "{\"actions\":[\"disable_password_ssh\"],\"evidence\":{\"affected_accounts_key_logins_verified\":1},\"affected_families\":[]}"
+      },
+      "expectedStdout": "blocked invalid_input",
+      "timeoutMs": 3000
+    }
+  ]
+}
