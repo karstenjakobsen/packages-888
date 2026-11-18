@@ -45,7 +45,7 @@
       "fixtures": {
         "input.json": "{\"ports\":[2222,2200,2222],\"allowlist\":[\"2001:0db8:5::/64\",\"192.0.2.7\",\"198.51.100.0/24\"],\"backend\":\"systemd\",\"banaction\":\"nftables-multiport\",\"maxretry\":5,\"findtime\":600,\"bantime\":900}"
       },
-      "expectedStdout": "stable across rerender and reordered input",
+      "expectedStdout": "stable across rerender and reordered input\n",
       "expectedFiles": {
         "sshd.local": "[sshd]\nenabled = true\nfilter = sshd\nbackend = systemd\nprotocol = tcp\nport = 2200,2222\nignoreip = 192.0.2.7 198.51.100.0/24 2001:db8:5::/64\nbanaction = nftables-multiport\nmaxretry = 5\nfindtime = 600\nbantime = 900\n"
       },
@@ -65,7 +65,7 @@
       "fixtures": {
         "input.json": "{\"ports\":[true],\"allowlist\":[\"2001:0db8:5::/64\",\"192.0.2.7\",\"198.51.100.0/24\"],\"backend\":\"systemd\",\"banaction\":\"nftables-multiport\",\"maxretry\":5,\"findtime\":600,\"bantime\":900}"
       },
-      "expectedStdout": "rejected; output preserved",
+      "expectedStdout": "rejected; output preserved\n",
       "timeoutMs": 5000
     },
     {
@@ -82,7 +82,7 @@
       "fixtures": {
         "input.json": "{\"ports\":[2222,2200,2222],\"allowlist\":[\"2001:0db8:5::/64\",\"192.0.2.7\",\"198.51.100.0/24\"],\"backend\":\"systemd\",\"banaction\":\"nftables-multiport\",\"maxretry\":5,\"findtime\":600,\"bantime\":900,\"logpath\":\"/fixture/sshd.log\"}"
       },
-      "expectedStdout": "rejected; output preserved",
+      "expectedStdout": "rejected; output preserved\n",
       "timeoutMs": 5000
     },
     {
@@ -99,7 +99,7 @@
       "fixtures": {
         "input.json": "{\"ports\":[2222,2200,2222],\"allowlist\":[\"2001:0db8:5::/64\",\"192.0.2.7\",\"198.51.100.0/24\"],\"backend\":\"systemd\",\"banaction\":\"nftables\\n[other]\",\"maxretry\":5,\"findtime\":600,\"bantime\":900}"
       },
-      "expectedStdout": "rejected; output preserved",
+      "expectedStdout": "rejected; output preserved\n",
       "timeoutMs": 5000
     },
     {
@@ -116,7 +116,7 @@
       "fixtures": {
         "input.json": "{\"ports\":[2222,2200,2222],\"allowlist\":[\"admin.example\"],\"backend\":\"systemd\",\"banaction\":\"nftables-multiport\",\"maxretry\":5,\"findtime\":600,\"bantime\":900}"
       },
-      "expectedStdout": "rejected; output preserved",
+      "expectedStdout": "rejected; output preserved\n",
       "timeoutMs": 5000
     },
     {
@@ -133,7 +133,7 @@
       "fixtures": {
         "input.json": "{\"ports\":[2222,2200,2222],\"allowlist\":[\"2001:0db8:5::/64\",\"192.0.2.7\",\"198.51.100.0/24\"],\"backend\":\"polling\",\"banaction\":\"iptables-multiport\",\"maxretry\":5,\"findtime\":600,\"bantime\":900,\"logpath\":\"/fixture/*.log\"}"
       },
-      "expectedStdout": "rejected; output preserved",
+      "expectedStdout": "rejected; output preserved\n",
       "timeoutMs": 5000
     }
   ]
