@@ -10,7 +10,7 @@
       "fixtures": {
         "input.json": "{\"actions\":[],\"evidence\":{},\"affected_families\":[]}"
       },
-      "expectedStdout": "reviewable no_changes_requested",
+      "expectedStdout": "reviewable no_changes_requested\n",
       "timeoutMs": 3000
     },
     {
@@ -23,7 +23,7 @@
       "fixtures": {
         "input.json": "{\"actions\":[\"disable_root_ssh\"],\"evidence\":{\"alternate_admin_fresh_independent_key_login\":true,\"alternate_admin_sudo_verified\":true,\"provider_console_recovery_verified\":true,\"management_session_retained\":true},\"affected_families\":[]}"
       },
-      "expectedStdout": "reviewable prerequisites_reported",
+      "expectedStdout": "reviewable prerequisites_reported\n",
       "timeoutMs": 3000
     },
     {
@@ -36,7 +36,7 @@
       "fixtures": {
         "input.json": "{\"actions\":[\"disable_root_ssh\"],\"evidence\":{\"alternate_admin_fresh_independent_key_login\":true,\"alternate_admin_sudo_verified\":false,\"provider_console_recovery_verified\":null,\"management_session_retained\":true},\"affected_families\":[]}"
       },
-      "expectedStdout": "blocked alternate_admin_sudo_verified,provider_console_recovery_verified",
+      "expectedStdout": "blocked alternate_admin_sudo_verified,provider_console_recovery_verified\n",
       "timeoutMs": 3000
     },
     {
@@ -49,7 +49,7 @@
       "fixtures": {
         "input.json": "{\"actions\":[\"disable_password_ssh\"],\"evidence\":{\"affected_accounts_key_logins_verified\":true},\"affected_families\":[]}"
       },
-      "expectedStdout": "reviewable prerequisites_reported",
+      "expectedStdout": "reviewable prerequisites_reported\n",
       "timeoutMs": 3000
     },
     {
@@ -62,7 +62,7 @@
       "fixtures": {
         "input.json": "{\"actions\":[\"disable_password_ssh\"],\"evidence\":{\"alternate_admin_fresh_independent_key_login\":true,\"alternate_admin_sudo_verified\":true,\"provider_console_recovery_verified\":true,\"management_session_retained\":true},\"affected_families\":[]}"
       },
-      "expectedStdout": "blocked affected_accounts_key_logins_verified",
+      "expectedStdout": "blocked affected_accounts_key_logins_verified\n",
       "timeoutMs": 3000
     },
     {
@@ -75,7 +75,7 @@
       "fixtures": {
         "input.json": "{\"actions\":[\"restrict_ssh_path\"],\"evidence\":{\"effective_listener_verified\":true,\"recoverable_rollback\":true,\"ipv4_replacement_tested\":true,\"ipv6_replacement_tested\":true},\"affected_families\":[\"ipv4\",\"ipv6\"]}"
       },
-      "expectedStdout": "reviewable prerequisites_reported",
+      "expectedStdout": "reviewable prerequisites_reported\n",
       "timeoutMs": 3000
     },
     {
@@ -88,7 +88,7 @@
       "fixtures": {
         "input.json": "{\"actions\":[\"restrict_ssh_path\"],\"evidence\":{\"effective_listener_verified\":true,\"recoverable_rollback\":true,\"ipv4_replacement_tested\":true,\"ipv6_replacement_tested\":null},\"affected_families\":[\"ipv4\",\"ipv6\"]}"
       },
-      "expectedStdout": "blocked ipv6_replacement_tested",
+      "expectedStdout": "blocked ipv6_replacement_tested\n",
       "timeoutMs": 3000
     },
     {
@@ -101,7 +101,7 @@
       "fixtures": {
         "input.json": "{\"actions\":[\"operator_core_change\"],\"evidence\":{},\"affected_families\":[]}"
       },
-      "expectedStdout": "external-maintenance operator_core_change",
+      "expectedStdout": "external-maintenance operator_core_change\n",
       "timeoutMs": 3000
     },
     {
@@ -114,7 +114,7 @@
       "fixtures": {
         "input.json": "{\"actions\":[],\"affected_families\":[],\"evidence\":{\"recoverable_rollback\":false,\"recoverable_rollback\":true}}"
       },
-      "expectedStdout": "blocked invalid_input",
+      "expectedStdout": "blocked invalid_input\n",
       "timeoutMs": 3000
     },
     {
@@ -127,7 +127,7 @@
       "fixtures": {
         "input.json": "{\"actions\":[\"disable_password_ssh\"],\"evidence\":{\"affected_accounts_key_logins_verified\":1},\"affected_families\":[]}"
       },
-      "expectedStdout": "blocked invalid_input",
+      "expectedStdout": "blocked invalid_input\n",
       "timeoutMs": 3000
     }
   ]
