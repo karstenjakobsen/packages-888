@@ -1,4 +1,0 @@
-# Staged only. Existing operator ingress must not be edited by this project.
-money.karstenjakobsen.dk {
-    reverse_proxy 127.0.0.1:3187
-}
