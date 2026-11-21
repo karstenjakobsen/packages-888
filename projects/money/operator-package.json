@@ -1,0 +1,21 @@
+{
+  "schemaVersion": 1,
+  "id": "4c2d0475-8c2c-4dd5-a040-c84f3d543ac6",
+  "kind": "project",
+  "name": "Money — Bilance finances",
+  "version": "0.1.0",
+  "description": "Private proof-of-concept current-month finance dashboard using the official Bilance MCP connection.",
+  "check": {
+    "command": "node",
+    "args": [
+      "--test",
+      "service.test.mjs"
+    ]
+  },
+  "run": {
+    "command": "node",
+    "args": [
+      "server.mjs"
+    ]
+  }
+}
