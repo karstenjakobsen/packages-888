@@ -1,0 +1,8 @@
+{
+  "schemaVersion": 1,
+  "id": "afd99574-0d1a-4c8c-b802-4a4c0d7839f6",
+  "kind": "skill",
+  "name": "nomad-single-node",
+  "version": "0.1.1",
+  "description": "Prepare, install and verify a persistent single-node HashiCorp Nomad server/client using Docker Engine, a private API and an operator MCP connection."
+}
