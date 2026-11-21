@@ -4,7 +4,7 @@
   "kind": "project",
   "name": "Money — Bilance finances",
   "version": "0.1.0",
-  "description": "Private proof-of-concept current-month finance dashboard using the official Bilance MCP connection.",
+  "description": "Private current-month Bilance finance dashboard. OAuth activation and DNS grant pending.",
   "check": {
     "command": "node",
     "args": [
