@@ -1,0 +1,75 @@
+name       = "catalog-local"
+region     = "global"
+datacenter = "dc1"
+data_dir   = "/var/lib/catalog-nomad/private/data"
+bind_addr  = "127.0.0.1"
+
+advertise {
+  http = "127.0.0.1:4646"
+  rpc  = "127.0.0.1:4647"
+  serf = "127.0.0.1:4648"
+}
+
+server {
+  enabled          = true
+  bootstrap_expect = 1
+  encrypt          = "@GOSSIP_KEY@"
+  raft_logstore {
+    backend = "boltdb"
+  }
+}
+
+client {
+  enabled             = true
+  servers             = ["127.0.0.1:4647"]
+  network_interface   = "lo"
+  disable_remote_exec = true
+  options = {
+    "driver.allowlist" = "docker"
+  }
+}
+
+plugin "docker" {
+  config {
+    endpoint         = "unix:///var/run/docker.sock"
+    allow_privileged = false
+    allow_runtimes   = ["runc"]
+    allow_caps       = []
+    pids_limit       = 128
+    allowed_modes = {
+      pid    = [""]
+      ipc    = ["", "private", "none"]
+      uts    = [""]
+      userns = [""]
+    }
+    volumes {
+      enabled = false
+    }
+    gc {
+      image = false
+      dangling_containers {
+        enabled = false
+      }
+    }
+  }
+}
+
+acl {
+  enabled = true
+}
+
+tls {
+  http                   = true
+  rpc                    = true
+  ca_file                = "/var/lib/catalog-nomad/private/nomad-agent-ca.pem"
+  cert_file              = "/var/lib/catalog-nomad/private/global-server-nomad.pem"
+  key_file               = "/var/lib/catalog-nomad/private/global-server-nomad-key.pem"
+  verify_server_hostname = true
+  verify_https_client    = true
+}
+
+consul {
+  auto_advertise      = false
+  server_auto_join    = false
+  client_auto_join    = false
+}
