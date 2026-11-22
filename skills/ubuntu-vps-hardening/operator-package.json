@@ -1,8 +1,0 @@
-{
-  "schemaVersion": 1,
-  "id": "81211dc3-5ddc-4a56-b758-c7e2f1b2c7ad",
-  "kind": "skill",
-  "name": "ubuntu-vps-hardening",
-  "version": "0.1.0",
-  "description": "Review Ubuntu 24.04 VPS security or plan and verify scoped hardening when the task requests it."
-}

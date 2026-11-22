@@ -1,8 +1,0 @@
-{
-  "schemaVersion": 1,
-  "id": "4874f677-5a63-489d-9433-6df737b1ab3e",
-  "kind": "skill",
-  "name": "digitalocean-dns",
-  "version": "0.1.0",
-  "description": "Inspect existing DigitalOcean DNS zones and add authorized A, AAAA, CNAME and TXT records through the registered DigitalOcean DNS MCP connection."
-}
