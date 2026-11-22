@@ -173,8 +173,10 @@ def check_unit(record):
             or props["LoadState"] not in ("loaded", "not-found")):
         raise RuntimeError("An unmanaged unit, override or mask is present")
     if exists:
-        if (record is None or UNIT.is_symlink() or not UNIT.is_file()
-                or UNIT.read_bytes() != (PROJECT / UNIT.name).read_bytes()):
+        entry = UNIT.lstat()
+        # check_host requires this process to be root. Verify permissions before trusting the contents.
+        if (record is None or not stat.S_ISREG(entry.st_mode) or entry.st_uid != os.geteuid()
+                or entry.st_mode & 0o022 or UNIT.read_bytes() != (PROJECT / UNIT.name).read_bytes()):
             raise RuntimeError(f"Refusing to replace existing unit {UNIT}")
     elif props["LoadState"] != "not-found":
         raise RuntimeError("Loaded unit has no managed file on disk")
@@ -296,12 +298,15 @@ def require_forbidden(api, path):
 
 def provision_resource(api, path, definition, pending):
     try:
-        return api.call("GET", path)
+        resource = api.call("GET", path)
     except ApiError as exc:
         if exc.status != 404 or not pending:
             raise
-    api.call("POST", path, definition)
-    return api.call("GET", path)
+        api.call("POST", path, definition)
+        resource = api.call("GET", path)
+    if not isinstance(resource, dict):
+        raise TypeError(f"Nomad returned an invalid resource for {path}")
+    return resource
 
 
 def provision(record):
@@ -370,5 +375,5 @@ if __name__ == "__main__":
     except subprocess.CalledProcessError as err:
         # Validation and key-generation output may include sensitive values.
         sys.exit(f"{Path(err.cmd[0]).name} failed (exit {err.returncode}) during {err.cmd[1]}")
-    except (OSError, ValueError, KeyError, RuntimeError, http.client.HTTPException, subprocess.TimeoutExpired) as err:
+    except (OSError, ValueError, TypeError, KeyError, RuntimeError, http.client.HTTPException, subprocess.TimeoutExpired) as err:
         sys.exit(str(err))

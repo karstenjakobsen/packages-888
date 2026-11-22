@@ -152,7 +152,7 @@ def main(argv=None):
     api = Api(cred, secret_file(cred / "token"))
     def check_identity():
         identity = api.call("GET", "/v1/acl/token/self")
-        if (identity.get("Type") != "client" or identity.get("Policies") != [POLICY]
+        if (not isinstance(identity, dict) or identity.get("Type") != "client" or identity.get("Policies") != [POLICY]
                 or identity.get("Roles") or identity.get("Global")):
             raise RuntimeError("Expected the installed scoped client token")
         return True

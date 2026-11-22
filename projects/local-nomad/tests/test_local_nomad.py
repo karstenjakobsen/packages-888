@@ -13,7 +13,7 @@ import tempfile
 import unittest
 import zipfile
 from pathlib import Path
-from unittest.mock import Mock, patch
+from unittest.mock import MagicMock, Mock, patch
 from uuid import uuid4
 
 PROJECT = Path(__file__).resolve().parents[1]
@@ -115,6 +115,14 @@ class CredentialsTests(unittest.TestCase):
                 self.assertEqual(copies, {p.name: p.read_bytes() for p in connector.iterdir()})
                 self.assertEqual(admin_file.read_text(), admin)
                 self.assertEqual(nomad_api.secret_file(connector / "token"), client)
+
+    def test_malformed_acl_resource_is_reported_without_a_write(self):
+        api = Mock()
+        api.call.return_value = None
+        path = "/v1/acl/policy/" + install.POLICY
+        with self.assertRaisesRegex(TypeError, "invalid resource"):
+            install.provision_resource(api, path, {}, True)
+        api.call.assert_called_once_with("GET", path)
 
     def test_interrupted_acl_resource_write_reconciles_without_overwrite(self):
         api = Mock()
@@ -242,6 +250,13 @@ class OwnershipTests(unittest.TestCase):
                 with self.assertRaisesRegex(RuntimeError, "override"):
                     install.check_unit({"format": 1})
                 props.pop("DropInPaths")
+                unit.chmod(0o664)
+                with self.assertRaisesRegex(RuntimeError, "replace"):
+                    install.check_unit({"format": 1})
+                unit.chmod(0o644)
+                with (patch.object(install.os, "geteuid", return_value=unit.stat().st_uid + 1),
+                      self.assertRaisesRegex(RuntimeError, "replace")):
+                    install.check_unit({"format": 1})
                 with patch.object(install.socket, "socket") as sock:
                     sock.return_value.__enter__.return_value.bind.side_effect = OSError("busy")
                     with self.assertRaisesRegex(RuntimeError, "4646"):
@@ -378,6 +393,13 @@ class ConnectorTests(unittest.TestCase):
             batch.main(["cleanup", "squares"])
         self.api.call.assert_called_once_with("GET", "/v1/acl/token/self")
 
+    def test_malformed_acl_identity_stops_before_job_operations(self):
+        self.api.call.return_value = None
+        with (patch.object(batch, "Api", return_value=self.api), patch.object(batch, "secret_file"),
+              patch.object(batch.os, "geteuid", return_value=1000), self.assertRaisesRegex(RuntimeError, "scoped client")):
+            batch.main(["cleanup", "squares"])
+        self.api.call.assert_called_once_with("GET", "/v1/acl/token/self")
+
     def test_root_cannot_run_normal_job_operations(self):
         with (patch.object(batch.os, "geteuid", return_value=0), patch.object(batch, "secret_file") as read,
               self.assertRaisesRegex(RuntimeError, "non-root")):
@@ -414,7 +436,9 @@ class ConnectorTests(unittest.TestCase):
             response.getheader.return_value = "https://elsewhere.invalid/receive"
             response.read.return_value = api.token.encode()
             with patch.object(nomad_api.http.client, "HTTPSConnection") as make:
-                make.return_value.getresponse.return_value = response
+                context = MagicMock()
+                context.__enter__.return_value = response
+                make.return_value.getresponse.return_value = context
                 with self.assertRaises(nomad_api.ApiError) as error:
                     api.call("POST", "/v1/jobs", {"Job": self.job}, query={"namespace": nomad_api.NAMESPACE})
                 make.assert_called_once_with("127.0.0.1", 4646, timeout=8, context=api.context)
@@ -426,6 +450,7 @@ class ConnectorTests(unittest.TestCase):
                 self.assertEqual(args[3]["X-Nomad-Token"], api.token)
                 self.assertNotIn(api.token, str(error.exception))
                 response.read.assert_not_called()
+                context.__exit__.assert_called_once()
 
 
 class WorkerContractTests(unittest.TestCase):

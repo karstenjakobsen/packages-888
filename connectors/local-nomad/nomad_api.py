@@ -38,17 +38,17 @@ class Api:
         target = path + ("?" + urlencode(query) if query else "")
         try:
             conn.request(method, target, json.dumps(body) if body is not None else None, headers)
-            response = conn.getresponse()
-            if not 200 <= response.status < 300:
-                # ACL response bodies may contain credentials.
-                raise ApiError(response.status, method, path)
-            limit = 1 << 20 if plain else 8 << 20
-            data = response.read(limit + 1)
-            if len(data) > limit:
-                raise RuntimeError(f"Nomad response exceeded {limit} bytes")
-            if plain:
-                return data.decode("utf-8", errors="replace")
-            return json.loads(data) if data else None
+            with conn.getresponse() as response:
+                if not 200 <= response.status < 300:
+                    # ACL response bodies may contain credentials.
+                    raise ApiError(response.status, method, path)
+                limit = 1 << 20 if plain else 8 << 20
+                data = response.read(limit + 1)
+                if len(data) > limit:
+                    raise RuntimeError(f"Nomad response exceeded {limit} bytes")
+                if plain:
+                    return data.decode("utf-8", errors="replace")
+                return json.loads(data) if data else None
         finally:
             conn.close()
 
