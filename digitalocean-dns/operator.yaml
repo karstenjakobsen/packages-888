@@ -7,13 +7,288 @@ timeout: 15.0
 schema_version: 1
 canonical_id: karstenjakobsen-connector-digitalocean-dns
 kind: connector
-instructions: |-
-  Read all DNS records for one DigitalOcean zone.
-
-  Call connector_read with this connector's ID and arguments containing one
-  zone, for example {"zone": "example.com"}. The zone is the domain managed in
-  DigitalOcean, such as example.com. Use the returned records to answer the request.
-
-  DigitalOcean requires an owner-approved token with domain:read. If the
-  credential dialog opens, wait for the owner to enter the token there, then
-  retry the read with the same zone.
+instructions: List a zone with list_dns_records and a zone argument. To create a record,
+  use connector_invoke with create_dns_record and zone, name, type, data and optional
+  ttl. Supported types are A, AAAA, CNAME and TXT. The operation reads the new record
+  back by ID. Supply the operation's token in the private credential dialog when prompted.
+operations:
+  list_dns_records:
+    description: List every DNS record in a zone.
+    scope: domain:read
+    method: GET
+    path: /v2/domains/{zone}/records
+    input_schema:
+      type: object
+      properties:
+        zone:
+          type: string
+          format: hostname
+          maxLength: 253
+          pattern: ^(?:[A-Za-z0-9](?:[A-Za-z0-9-]{0,61}[A-Za-z0-9])?\.)+[A-Za-z0-9](?:[A-Za-z0-9-]{0,61}[A-Za-z0-9])?$
+      required:
+      - zone
+      additionalProperties: false
+    query:
+      per_page: '200'
+    result_field: domain_records
+    pagination:
+      page_parameter: page
+      next_field:
+      - links
+      - pages
+      - next
+    tests:
+    - name: Read both pages
+      arguments:
+        zone: example.com
+      exchanges:
+      - method: GET
+        path: /v2/domains/example.com/records
+        query:
+          per_page: '200'
+          page: '1'
+        response:
+          domain_records:
+          - id: 1
+            type: A
+            name: www
+            data: 192.0.2.1
+            ttl: 300
+          links:
+            pages:
+              next: next page
+      - method: GET
+        path: /v2/domains/example.com/records
+        query:
+          per_page: '200'
+          page: '2'
+        response:
+          domain_records: []
+      expected:
+      - id: 1
+        type: A
+        name: www
+        data: 192.0.2.1
+        ttl: 300
+  create_dns_record:
+    description: Create one DNS record and read it back by provider ID.
+    scope: domain:create (requires domain:read)
+    method: POST
+    path: /v2/domains/{zone}/records
+    input_schema:
+      type: object
+      properties:
+        zone:
+          type: string
+          format: hostname
+          maxLength: 253
+          pattern: ^(?:[A-Za-z0-9](?:[A-Za-z0-9-]{0,61}[A-Za-z0-9])?\.)+[A-Za-z0-9](?:[A-Za-z0-9-]{0,61}[A-Za-z0-9])?$
+        type:
+          enum:
+          - A
+          - AAAA
+          - CNAME
+          - TXT
+        name:
+          type: string
+          minLength: 1
+          maxLength: 253
+        data:
+          type: string
+          minLength: 1
+        ttl:
+          type: integer
+          minimum: 30
+          maximum: 2147483647
+      required:
+      - zone
+      - type
+      - name
+      - data
+      additionalProperties: false
+      allOf:
+      - if:
+          properties:
+            type:
+              const: A
+        then:
+          properties:
+            data:
+              format: ipv4
+      - if:
+          properties:
+            type:
+              const: AAAA
+        then:
+          properties:
+            data:
+              format: ipv6
+      - if:
+          properties:
+            type:
+              const: CNAME
+        then:
+          properties:
+            data:
+              format: hostname
+              pattern: ^(?:[A-Za-z0-9](?:[A-Za-z0-9-]{0,61}[A-Za-z0-9])?\.)*[A-Za-z0-9](?:[A-Za-z0-9-]{0,61}[A-Za-z0-9])?\.?$
+              maxLength: 253
+    body_fields:
+    - type
+    - name
+    - data
+    - ttl
+    result_field: domain_record
+    verify:
+      path: /v2/domains/{zone}/records/{result_id}
+      id_field: id
+      result_field: domain_record
+    tests:
+    - name: Create and verify A
+      arguments:
+        zone: example.com
+        name: test
+        type: A
+        data: 192.0.2.1
+        ttl: 300
+      exchanges:
+      - method: POST
+        path: /v2/domains/example.com/records
+        body:
+          name: test
+          type: A
+          data: 192.0.2.1
+          ttl: 300
+        response:
+          domain_record:
+            id: 42
+            name: test
+            type: A
+            data: 192.0.2.1
+            ttl: 300
+      - method: GET
+        path: /v2/domains/example.com/records/42
+        response:
+          domain_record:
+            id: 42
+            name: test
+            type: A
+            data: 192.0.2.1
+            ttl: 300
+      expected:
+        id: 42
+        name: test
+        type: A
+        data: 192.0.2.1
+        ttl: 300
+    - name: Create and verify AAAA
+      arguments:
+        zone: example.com
+        name: test
+        type: AAAA
+        data: 2001:db8::1
+        ttl: 300
+      exchanges:
+      - method: POST
+        path: /v2/domains/example.com/records
+        body:
+          name: test
+          type: AAAA
+          data: 2001:db8::1
+          ttl: 300
+        response:
+          domain_record:
+            id: 42
+            name: test
+            type: AAAA
+            data: 2001:db8::1
+            ttl: 300
+      - method: GET
+        path: /v2/domains/example.com/records/42
+        response:
+          domain_record:
+            id: 42
+            name: test
+            type: AAAA
+            data: 2001:db8::1
+            ttl: 300
+      expected:
+        id: 42
+        name: test
+        type: AAAA
+        data: 2001:db8::1
+        ttl: 300
+    - name: Create and verify CNAME
+      arguments:
+        zone: example.com
+        name: test
+        type: CNAME
+        data: target.example.com
+        ttl: 300
+      exchanges:
+      - method: POST
+        path: /v2/domains/example.com/records
+        body:
+          name: test
+          type: CNAME
+          data: target.example.com
+          ttl: 300
+        response:
+          domain_record:
+            id: 42
+            name: test
+            type: CNAME
+            data: target.example.com
+            ttl: 300
+      - method: GET
+        path: /v2/domains/example.com/records/42
+        response:
+          domain_record:
+            id: 42
+            name: test
+            type: CNAME
+            data: target.example.com
+            ttl: 300
+      expected:
+        id: 42
+        name: test
+        type: CNAME
+        data: target.example.com
+        ttl: 300
+    - name: Create and verify TXT
+      arguments:
+        zone: example.com
+        name: test
+        type: TXT
+        data: example verification
+        ttl: 300
+      exchanges:
+      - method: POST
+        path: /v2/domains/example.com/records
+        body:
+          name: test
+          type: TXT
+          data: example verification
+          ttl: 300
+        response:
+          domain_record:
+            id: 42
+            name: test
+            type: TXT
+            data: example verification
+            ttl: 300
+      - method: GET
+        path: /v2/domains/example.com/records/42
+        response:
+          domain_record:
+            id: 42
+            name: test
+            type: TXT
+            data: example verification
+            ttl: 300
+      expected:
+        id: 42
+        name: test
+        type: TXT
+        data: example verification
+        ttl: 300
