@@ -1,0 +1,9 @@
+endpoint: https://api.digitalocean.com
+secret_ref: digitalocean-dns
+name: DigitalOcean DNS
+auth: bearer
+tool: list_dns_records
+timeout: 15.0
+schema_version: 1
+canonical_id: karstenjakobsen-connector-digitalocean-dns
+kind: connector
