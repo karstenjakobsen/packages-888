@@ -7,3 +7,13 @@ timeout: 15.0
 schema_version: 1
 canonical_id: karstenjakobsen-connector-digitalocean-dns
 kind: connector
+instructions: |-
+  Read all DNS records for one DigitalOcean zone.
+
+  Call connector_read with this connector's ID and arguments containing one
+  zone, for example {"zone": "example.com"}. The zone is the domain managed in
+  DigitalOcean, such as example.com. Use the returned records to answer the request.
+
+  DigitalOcean requires an owner-approved token with domain:read. If the
+  credential dialog opens, wait for the owner to enter the token there, then
+  retry the read with the same zone.
