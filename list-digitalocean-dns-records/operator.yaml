@@ -1,0 +1,7 @@
+schema_version: 1
+canonical_id: karstenjakobsen-skill-list-digitalocean-dns-records
+name: List DigitalOcean DNS records
+kind: skill
+purpose: Read the DNS records for one DigitalOcean zone.
+skill_type: guide
+guide: SKILL.md
